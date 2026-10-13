@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Book with Violet Beauty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; font-family: 'Lora', Georgia, serif; background: #f2e9f6; color: #222; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { background: #fff; max-width: 400px; width: calc(100% - 32px); margin: 24px 16px; padding: 28px 22px 24px; border-radius: 14px; box-shadow: 0 4px 18px rgba(163, 23, 94, 0.12); text-align: center; }
+    h1 { font-size: 22px; margin: 0 0 6px; color: #a3175e; }
+    p { font-size: 15px; line-height: 1.5; margin: 10px 0; }
+    .steps { text-align: left; background: #fafafa; border: 1px solid #eee; border-radius: 10px; padding: 12px 16px; font-size: 14.5px; line-height: 1.6; }
+    .steps b { color: #a3175e; }
+    button, a.btn { display: block; width: 100%; box-sizing: border-box; margin-top: 12px; padding: 13px 16px; border: none; border-radius: 8px; background: #d63384; color: #fff; font-family: inherit; font-weight: 600; font-size: 15.5px; text-decoration: none; cursor: pointer; }
+    button.secondary { background: #fff; color: #a3175e; border: 1px solid #d63384; }
+    .small { font-size: 12.5px; color: #888; margin-top: 16px; }
+    .small a { color: #888; }
+    #prompt { display: none; }
+    #copyMsg { font-size: 13px; color: #1e7e34; min-height: 18px; margin-top: 6px; }
+  </style>
+</head>
+<body>
+
+  <!-- Everyone except in-app browsers is sent straight on to the booking page. -->
+  <noscript>
+    <div class="card"><h1>Violet Beauty 💜</h1><p><a href="https://script.google.com/a/macros/violetbeauty.net/s/AKfycbxgWwe86wFyvUGRxGmsbfmPlfYL0HNovyUF16xoONu-i-OPgGwnsIjun8KkSWwWE60f/exec">Continue to book</a></p></div>
+  </noscript>
+
+  <div class="card" id="prompt">
+    <h1>Violet Beauty 💜</h1>
+    <p><strong>One quick step to book</strong></p>
+    <p>Instagram's built-in browser can't load our booking page, so it needs opening in your normal browser.</p>
+
+    <div id="androidBlock" style="display:none;">
+      <a class="btn" id="androidBtn" href="#">Open in Chrome to book</a>
+      <p class="small" style="margin-top:10px;">Or tap <b>⋮</b> at the top right, then <b>Open in Chrome</b> / <b>Open in browser</b>.</p>
+    </div>
+
+    <div id="iosBlock" style="display:none;">
+      <div class="steps">
+        <b>1.</b> Tap the <b>•••</b> menu (top or bottom right)<br>
+        <b>2.</b> Choose <b>Open in Safari</b> / <b>Open in browser</b>
+      </div>
+      <button type="button" class="secondary" id="copyBtn">Or copy the link</button>
+      <div id="copyMsg"></div>
+    </div>
+
+    <div id="otherBlock" style="display:none;">
+      <div class="steps">
+        Tap the <b>•••</b> or <b>⋮</b> menu, then choose <b>Open in browser</b>.
+      </div>
+      <button type="button" class="secondary" id="copyBtn2">Or copy the link</button>
+      <div id="copyMsg2"></div>
+    </div>
+
+    <p class="small"><a id="tryAnyway" href="#">Try opening here anyway</a></p>
+  </div>
+
+  <script>
+    // ===== The only thing you'd ever need to change =====
+    // Your live booking page. If the booking system is ever redeployed as a brand-new
+    // deployment (rather than a new version of the existing one), update this link.
+    var BOOKING_URL = 'https://script.google.com/a/macros/violetbeauty.net/s/AKfycbxgWwe86wFyvUGRxGmsbfmPlfYL0HNovyUF16xoONu-i-OPgGwnsIjun8KkSWwWE60f/exec';
+    // ====================================================
+
+    // Anything after the "?" on this page (e.g. ?page=review) is passed on to the booking system.
+    var target = BOOKING_URL + (location.search || '');
+
+    var ua = navigator.userAgent || '';
+    var inApp = /Instagram|FBAN|FBAV|FB_IAB|musical_ly|BytedanceWebview|TikTok/i.test(ua);
+    var isAndroid = /Android/i.test(ua);
+    var isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+    document.getElementById('tryAnyway').href = target;
+
+    if (!inApp) {
+      location.replace(target);
+    } else {
+      document.getElementById('prompt').style.display = 'block';
+
+      if (isAndroid) {
+        document.getElementById('androidBlock').style.display = 'block';
+        // Opens Chrome directly; falls back to the booking page if Chrome isn't installed.
+        var noScheme = target.replace(/^https?:\/\//, '');
+        document.getElementById('androidBtn').href =
+          'intent://' + noScheme + '#Intent;scheme=https;package=com.android.chrome;' +
+          'S.browser_fallback_url=' + encodeURIComponent(target) + ';end';
+      } else if (isIOS) {
+        document.getElementById('iosBlock').style.display = 'block';
+      } else {
+        document.getElementById('otherBlock').style.display = 'block';
+      }
+
+      // Copies this short page address (it forwards on to the booking page when pasted into a normal browser).
+      var shortLink = location.origin + location.pathname;
+      function wireCopy(btnId, msgId) {
+        var btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+          var msg = document.getElementById(msgId);
+          function done(ok) { msg.style.color = ok ? '#1e7e34' : '#c0392b'; msg.textContent = ok ? '✓ Link copied — paste it into Safari or Chrome' : 'Couldn\'t copy — please use the ••• menu instead'; }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shortLink).then(function () { done(true); }, function () { done(false); });
+          } else {
+            try {
+              var t = document.createElement('textarea');
+              t.value = shortLink; document.body.appendChild(t); t.select();
+              var ok = document.execCommand('copy'); document.body.removeChild(t); done(ok);
+            } catch (e) { done(false); }
+          }
+        });
+      }
+      wireCopy('copyBtn', 'copyMsg');
+      wireCopy('copyBtn2', 'copyMsg2');
+    }
+  </script>
+</body>
+</html>
